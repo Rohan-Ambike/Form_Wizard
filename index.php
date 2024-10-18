@@ -69,14 +69,13 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-primary" onclick="showSection('login-section')">Login</button>
-                        <!-- <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button> -->
                         <button type="submit" class="btn btn-success">Sign Up</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- <div class="row justify-content-center mt-2 align-items-center">
+        <div class="row justify-content-center mt-2 align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5 d-none" id="login-section">
                 <h3 class="text-start mb-4 fira-sans-medium">Login</h3>
                 <form method="post" action="login.php" onsubmit="return loginAlert()">
@@ -90,25 +89,7 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
-                        <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button>
                         <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div> -->
-
-        <div class="row justify-content-center mt-2 d-none" id="forgot-section">
-            <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5">
-                <h3 class="text-start mb-4 fira-sans-medium">Forgot Password</h3>
-                <form method="post" action="forgot_password.php">
-                    <div class="mb-3">
-                        <label for="forgotEmployeeID" class="form-label">Employee Email</label>
-                        <input type="text" class="form-control" id="forgotEmployeeID" name="employee_email" required>
-                    </div>
-                    <div class="mt-4 d-flex justify-content-between">
-                        <button type="button" class="btn btn-primary" onclick="showSection('login-section')">Login</button>
-                        <!-- <button type="submit" class="btn btn-warning">Reset Password</button> -->
-                        <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
                     </div>
                 </form>
             </div>
@@ -120,7 +101,6 @@ if (isset($_SESSION['login_error'])) {
                 // Hide all sections first
                 document.getElementById('login-section').classList.add('d-none');
                 document.getElementById('signup-section').classList.add('d-none');
-                document.getElementById('forgot-section').classList.add('d-none');
 
                 // Show the selected section
                 document.getElementById(sectionId).classList.remove('d-none');

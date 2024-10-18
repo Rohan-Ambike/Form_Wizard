@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // Make sure db.php connects to your database
+require 'db.php'; // Ensure db.php connects to your database
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $employee_email = $_POST['employee_email'];

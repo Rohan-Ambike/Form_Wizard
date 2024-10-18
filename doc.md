@@ -1,5 +1,4 @@
 index.php
-
 <?php
 require 'db.php'; // Include the database connection check
 
@@ -78,7 +77,7 @@ if (isset($_SESSION['login_error'])) {
             </div>
         </div>
 
-        <!-- <div class="row justify-content-center mt-2 align-items-center">
+        <div class="row justify-content-center mt-2 align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5 d-none" id="login-section">
                 <h3 class="text-start mb-4 fira-sans-medium">Login</h3>
                 <form method="post" action="login.php" onsubmit="return loginAlert()">
@@ -92,12 +91,12 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
-                        <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button>
+                        <!-- <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button> -->
                         <button type="submit" class="btn btn-primary">Login</button>
                     </div>
                 </form>
             </div>
-        </div> -->
+        </div>
 
         <div class="row justify-content-center mt-2 d-none" id="forgot-section">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5">
@@ -109,7 +108,7 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-primary" onclick="showSection('login-section')">Login</button>
-                        <!-- <button type="submit" class="btn btn-warning">Reset Password</button> -->
+                        <button type="submit" class="btn btn-warning">Reset Password</button>
                         <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
                     </div>
                 </form>
@@ -169,6 +168,7 @@ if ($conn->connect_error) {
     // echo "<script>alert('Database connection successful!');</script>";
 }
 
+
 signup.php
 
 <?php
@@ -211,6 +211,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 $conn->close();
 
+
 login.php
 
 <?php
@@ -252,122 +253,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     header('Location: index.php');
     exit();
 }
-
-forgot_password.php
-
-<?php
-// require 'db.php';
-
-// if ($_SERVER["REQUEST_METHOD"] == "POST") {
-//     $employee_email = $conn->real_escape_string($_POST['employee_email']);
-
-//     // Check if the email exists
-//     $query = "SELECT * FROM users WHERE employee_email = '$employee_email'";
-//     $result = $conn->query($query);
-
-//     if ($result->num_rows > 0) {
-//         $user = $result->fetch_assoc();
-
-//         // Generate a unique token
-//         $reset_token = bin2hex(random_bytes(16));
-//         $updateQuery = "UPDATE users SET reset_token = '$reset_token' WHERE employee_email = '$employee_email'";
-//         if ($conn->query($updateQuery) === TRUE) {
-//             // Prepare the reset link
-//             $reset_link = "http://yourdomain.com/reset_password.php?token=$reset_token";
-
-//             // Send email (ensure mail() function is set up properly in your server)
-//             $subject = "Password Reset Request";
-//             $message = "Click the following link to reset your password: $reset_link";
-//             $headers = "From: no-reply@yourdomain.com\r\n";
-
-//             mail($employee_email, $subject, $message, $headers);
-
-//             echo "Password reset link has been sent to your email.";
-//         } else {
-//             echo "Error updating reset token: " . $conn->error;
-//         }
-//     } else {
-//         echo "No user found with that email.";
-//     }
-// }
-// $conn->close();
-?>
-
-reset_password.php
-
-<?php
-require 'db.php';
-session_start();
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $token = $_POST['token'];
-    $new_password = $_POST['new_password'];
-    $confirm_password = $_POST['confirm_password'];
-
-    // Check if passwords match
-    if ($new_password === $confirm_password) {
-        // Hash the new password
-        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-
-        // Update the password and clear the reset token
-        $query = "UPDATE users SET password = '$hashed_password', reset_token = NULL WHERE reset_token = '$token'";
-        if ($conn->query($query) === TRUE) {
-            $_SESSION['message'] = "Password updated successfully. You can now log in.";
-            header("Location: index.php"); // Redirect to index
-            exit();
-        } else {
-            echo "Error updating password: " . $conn->error;
-        }
-    } else {
-        echo "Passwords do not match.";
-    }
-}
-
-// Check if token is valid
-if (isset($_GET['token'])) {
-    $token = $_GET['token'];
-    $query = "SELECT * FROM users WHERE reset_token = '$token'";
-    $result = $conn->query($query);
-
-    if ($result->num_rows === 0) {
-        echo "Invalid or expired token.";
-        exit();
-    }
-} else {
-    echo "No token provided.";
-    exit();
-}
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Password</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body>
-    <div class="container mt-5">
-        <h3>Reset Your Password</h3>
-        <form method="post" action="reset_password.php">
-            <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
-            <div class="mb-3">
-                <label for="new_password" class="form-label">New Password</label>
-                <input type="password" class="form-control" id="new_password" name="new_password" required>
-            </div>
-            <div class="mb-3">
-                <label for="confirm_password" class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Reset Password</button>
-        </form>
-    </div>
-</body>
-
-</html>
 
 hello.php
 
