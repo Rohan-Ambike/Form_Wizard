@@ -26,9 +26,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssss", $first_name, $last_name, $employee_email, $password);
 
         if ($stmt->execute()) {
-            $_SESSION['employee_email'] = $employee_email;
-            header('Location: hello.php'); // Redirect to a success page
-            exit();
+            // Insert into user_access after successful user registration
+            $accessQuery = "INSERT INTO user_access (email_id, admin_access, test_list) VALUES (?, 'no', '[]')";
+            $stmtAccess = $conn->prepare($accessQuery);
+            $stmtAccess->bind_param("s", $employee_email);
+
+            if ($stmtAccess->execute()) {
+                $_SESSION['employee_email'] = $employee_email;
+                header('Location: hello.php'); // Redirect to a success page
+                exit();
+            } else {
+                echo "Error inserting into user_access: " . $stmtAccess->error;
+            }
         } else {
             echo "Error: " . $stmt->error;
         }

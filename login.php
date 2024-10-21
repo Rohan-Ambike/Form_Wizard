@@ -4,36 +4,31 @@ require 'db.php'; // Ensure db.php connects to your database
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $employee_email = $_POST['employee_email'];
-    $password = $_POST['password'];
+    $password_entered = $_POST['password'];
 
-    // Check if input fields are not empty
-    if (!empty($employee_email) && !empty($password)) {
-        // Prepare and execute the query
-        $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
-        $stmt->bind_param("s", $employee_email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // Prepare and execute the query
+    $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
+    $stmt->bind_param("s", $employee_email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['employee_email'] = $employee_email;
-                header("Location: hello.php");
-                exit();
-            } else {
-                $_SESSION['login_error'] = "Invalid password. Please try again.";
-            }
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $hashed_password_from_db = $user['password'];
+
+        // Verify password
+        if (password_verify($password_entered, $hashed_password_from_db)) {
+            $_SESSION['employee_email'] = $employee_email;
+            header("Location: hello.php");
+            exit();
         } else {
-            $_SESSION['login_error'] = "User not found. Please check your email.";
+            $_SESSION['login_error'] = "Invalid password. Please try again.";
         }
-
-        $stmt->close();
     } else {
-        $_SESSION['login_error'] = "All fields are required.";
+        $_SESSION['login_error'] = "User not found. Please check your email.";
     }
 
-    // Redirect back to index.php with an alert
+    $stmt->close();
     header('Location: index.php');
     exit();
 }

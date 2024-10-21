@@ -1,4 +1,5 @@
 index.php
+
 <?php
 require 'db.php'; // Include the database connection check
 
@@ -20,6 +21,7 @@ if (isset($_SESSION['login_error'])) {
     echo '</script>';
     unset($_SESSION['login_error']);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -41,7 +43,7 @@ if (isset($_SESSION['login_error'])) {
     <div class="container pt-2 pb-5">
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 p-4 d-flex align-items-center justify-content-center">
-                <img class="img-fluid rounded-circle" src="./images/FormWizard.jpeg" alt="Logo" width="170">
+                <img class="img-fluid rounded-circle" src="./images/formwizard.jpeg" alt="Logo" width="170">
                 <h2 class="playwrite fm-9 fw-5 ps-4 ps-md-5">
                     Form Wizard
                 </h2>
@@ -51,7 +53,7 @@ if (isset($_SESSION['login_error'])) {
         <div class="row justify-content-center mt-2 d-none" id="signup-section">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5">
                 <h3 class="text-start mb-4 fira-sans-medium">Sign Up</h3>
-                <form method="post" action="signup.php">
+                <form class="mb-0" method="post" action="signup.php">
                     <div class="mb-3">
                         <label for="signupFirstName" class="form-label">First Name</label>
                         <input type="text" class="form-control" id="signupFirstName" name="first_name" required>
@@ -70,7 +72,6 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-primary" onclick="showSection('login-section')">Login</button>
-                        <!-- <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button> -->
                         <button type="submit" class="btn btn-success">Sign Up</button>
                     </div>
                 </form>
@@ -80,7 +81,7 @@ if (isset($_SESSION['login_error'])) {
         <div class="row justify-content-center mt-2 align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5 d-none" id="login-section">
                 <h3 class="text-start mb-4 fira-sans-medium">Login</h3>
-                <form method="post" action="login.php" onsubmit="return loginAlert()">
+                <form class="mb-0" method="post" action="login.php" onsubmit="return loginAlert()">
                     <div class="mb-3">
                         <label for="loginEmployeeEmail" class="form-label">Employee Email</label>
                         <input type="text" class="form-control" id="loginEmployeeEmail" name="employee_email" required>
@@ -91,25 +92,7 @@ if (isset($_SESSION['login_error'])) {
                     </div>
                     <div class="mt-4 d-flex justify-content-between">
                         <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
-                        <!-- <button type="button" class="btn btn-warning" onclick="showSection('forgot-section')">Reset Password</button> -->
                         <button type="submit" class="btn btn-primary">Login</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div class="row justify-content-center mt-2 d-none" id="forgot-section">
-            <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5">
-                <h3 class="text-start mb-4 fira-sans-medium">Forgot Password</h3>
-                <form method="post" action="forgot_password.php">
-                    <div class="mb-3">
-                        <label for="forgotEmployeeID" class="form-label">Employee Email</label>
-                        <input type="text" class="form-control" id="forgotEmployeeID" name="employee_email" required>
-                    </div>
-                    <div class="mt-4 d-flex justify-content-between">
-                        <button type="button" class="btn btn-primary" onclick="showSection('login-section')">Login</button>
-                        <button type="submit" class="btn btn-warning">Reset Password</button>
-                        <button type="button" class="btn btn-success" onclick="showSection('signup-section')">Sign Up</button>
                     </div>
                 </form>
             </div>
@@ -121,7 +104,6 @@ if (isset($_SESSION['login_error'])) {
                 // Hide all sections first
                 document.getElementById('login-section').classList.add('d-none');
                 document.getElementById('signup-section').classList.add('d-none');
-                document.getElementById('forgot-section').classList.add('d-none');
 
                 // Show the selected section
                 document.getElementById(sectionId).classList.remove('d-none');
@@ -149,25 +131,6 @@ if (isset($_SESSION['login_error'])) {
 </body>
 
 </html>
-
-db.php
-
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "FormWizard";
-
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("<script>alert('Connection failed: " . $conn->connect_error . "');</script>");
-} else {
-    // echo "<script>alert('Database connection successful!');</script>";
-}
-
 
 signup.php
 
@@ -199,9 +162,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssss", $first_name, $last_name, $employee_email, $password);
 
         if ($stmt->execute()) {
-            $_SESSION['employee_email'] = $employee_email;
-            header('Location: hello.php'); // Redirect to a success page
-            exit();
+            // Insert into user_access after successful user registration
+            $accessQuery = "INSERT INTO user_access (email_id, admin_access, test_list) VALUES (?, 'no', '[]')";
+            $stmtAccess = $conn->prepare($accessQuery);
+            $stmtAccess->bind_param("s", $employee_email);
+
+            if ($stmtAccess->execute()) {
+                $_SESSION['employee_email'] = $employee_email;
+                header('Location: hello.php'); // Redirect to a success page
+                exit();
+            } else {
+                echo "Error inserting into user_access: " . $stmtAccess->error;
+            }
         } else {
             echo "Error: " . $stmt->error;
         }
@@ -216,43 +188,84 @@ login.php
 
 <?php
 session_start();
-require 'db.php'; // Make sure db.php connects to your database
+require 'db.php'; // Ensure db.php connects to your database
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $employee_email = $_POST['employee_email'];
-    $password = $_POST['password'];
+    $password_entered = $_POST['password'];
 
-    // Check if input fields are not empty
-    if (!empty($employee_email) && !empty($password)) {
-        // Prepare and execute the query
-        $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
-        $stmt->bind_param("s", $employee_email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // Prepare and execute the query
+    $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
+    $stmt->bind_param("s", $employee_email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-            // Verify password
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['employee_email'] = $employee_email;
-                header("Location: hello.php");
-                exit();
-            } else {
-                $_SESSION['login_error'] = "Invalid password. Please try again.";
-            }
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $hashed_password_from_db = $user['password'];
+
+        // Verify password
+        if (password_verify($password_entered, $hashed_password_from_db)) {
+            $_SESSION['employee_email'] = $employee_email;
+            header("Location: hello.php");
+            exit();
         } else {
-            $_SESSION['login_error'] = "User not found. Please check your email.";
+            $_SESSION['login_error'] = "Invalid password. Please try again.";
         }
-
-        $stmt->close();
     } else {
-        $_SESSION['login_error'] = "All fields are required.";
+        $_SESSION['login_error'] = "User not found. Please check your email.";
     }
 
-    // Redirect back to index.php with an alert
+    $stmt->close();
     header('Location: index.php');
     exit();
 }
+
+
+db.php
+
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "formwizard"; // Name of the database
+
+// Create a connection without specifying the database
+$conn = new mysqli($servername, $username, $password);
+
+// Check the connection
+if ($conn->connect_error) {
+    die("<script>alert('Connection failed: " . $conn->connect_error . "');</script>");
+}
+
+// Check if the database exists
+$db_selected = $conn->query("SHOW DATABASES LIKE '$dbname'");
+
+if ($db_selected->num_rows == 0) {
+    // If the database doesn't exist, execute the SQL file to create it
+    $sql_file = file_get_contents('./sql/create_database.sql');
+
+    if (mysqli_multi_query($conn, $sql_file)) {
+        echo "<script>alert('Database created successfully!');</script>";
+        // Wait for all queries to complete
+        while (mysqli_more_results($conn) && mysqli_next_result($conn)) {
+        }
+    } else {
+        die("<script>alert('Error creating database: " . $conn->error . "');</script>");
+    }
+}
+
+// Close and reconnect to the newly created database
+$conn->close();
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check the connection to the newly created database
+if ($conn->connect_error) {
+    die("<script>alert('Connection to database failed: " . $conn->connect_error . "');</script>");
+}
+
+// Now you can use $conn to interact with the database
+
 
 hello.php
 
@@ -301,3 +314,47 @@ session_destroy();
 // Redirect to login page
 header("Location: index.php");
 exit();
+
+
+create_database.sql
+
+-- Create the database
+CREATE DATABASE
+IF NOT EXISTS formwizard;
+
+-- Use the created database
+USE formwizard;
+
+-- Create the users table
+CREATE TABLE
+IF NOT EXISTS users
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR
+(50) NOT NULL,
+    last_name VARCHAR
+(50) NOT NULL,
+    employee_email VARCHAR
+(100) UNIQUE NOT NULL,
+    password VARCHAR
+(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the user_access table
+CREATE TABLE
+IF NOT EXISTS user_access
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email_id VARCHAR
+(100) UNIQUE NOT NULL,
+    admin_access ENUM
+('yes', 'no') DEFAULT 'no',
+    test_list JSON DEFAULT '[]',
+    FOREIGN KEY
+(email_id) REFERENCES users
+(employee_email) ON
+DELETE CASCADE
+);
+
+

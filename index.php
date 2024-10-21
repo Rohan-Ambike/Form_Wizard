@@ -19,6 +19,7 @@ if (isset($_SESSION['login_error'])) {
     echo '</script>';
     unset($_SESSION['login_error']);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -40,7 +41,7 @@ if (isset($_SESSION['login_error'])) {
     <div class="container pt-2 pb-5">
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 p-4 d-flex align-items-center justify-content-center">
-                <img class="img-fluid rounded-circle" src="./images/FormWizard.jpeg" alt="Logo" width="170">
+                <img class="img-fluid rounded-circle" src="./images/formwizard.jpeg" alt="Logo" width="170">
                 <h2 class="playwrite fm-9 fw-5 ps-4 ps-md-5">
                     Form Wizard
                 </h2>
@@ -50,7 +51,7 @@ if (isset($_SESSION['login_error'])) {
         <div class="row justify-content-center mt-2 d-none" id="signup-section">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5">
                 <h3 class="text-start mb-4 fira-sans-medium">Sign Up</h3>
-                <form method="post" action="signup.php">
+                <form class="mb-0" method="post" action="signup.php">
                     <div class="mb-3">
                         <label for="signupFirstName" class="form-label">First Name</label>
                         <input type="text" class="form-control" id="signupFirstName" name="first_name" required>
@@ -78,7 +79,7 @@ if (isset($_SESSION['login_error'])) {
         <div class="row justify-content-center mt-2 align-items-center">
             <div class="col-md-8 col-lg-6 col-xl-5 shadow p-5 d-none" id="login-section">
                 <h3 class="text-start mb-4 fira-sans-medium">Login</h3>
-                <form method="post" action="login.php" onsubmit="return loginAlert()">
+                <form class="mb-0" method="post" action="login.php" onsubmit="return loginAlert()">
                     <div class="mb-3">
                         <label for="loginEmployeeEmail" class="form-label">Employee Email</label>
                         <input type="text" class="form-control" id="loginEmployeeEmail" name="employee_email" required>
