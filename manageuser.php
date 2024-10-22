@@ -27,9 +27,38 @@ $result = $conn->query($query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Users</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="./styles/measurements.css">
+    <link rel="stylesheet" href="./styles/styles.css">
+    <link rel="stylesheet" href="./styles/font.css">
     <style>
         .editable {
             background-color: #f9f9f9;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Ensure table cells wrap text and have a maximum width */
+        td {
+            max-width: 150px;
+            /* Adjust this value as needed */
+            overflow-wrap: normal;
+            /* Allow text to wrap */
+            word-wrap: break-word;
+            /* Ensure compatibility */
+            word-break: break-word;
+            /* Prevent overflow */
+        }
+
+        .table td,
+        .table th {
+            vertical-align: middle;
+        }
+
+        .table tr:hover {
+            background-color: #f5f5f5;
         }
 
         .hidden {
@@ -40,11 +69,18 @@ $result = $conn->query($query);
 
 <body>
     <div class="container mt-5">
-        <h1 class="text-center">Manage Users</h1>
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h1 class="text-center mb-0 playwrite fw-6">Manage Users</h1>
+            <a href="logout.php" class="btn btn-danger mt-2 me-5 fira-sans-medium">Logout</a>
+        </div>
 
-        <a href="logout.php" class="btn btn-danger mb-3">Logout</a>
+        <div id="loading-spinner" class="text-center hidden">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
 
-        <table class="table table-striped mt-4">
+        <table class="table table-striped table-responsive fira-sans-regular">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -62,36 +98,36 @@ $result = $conn->query($query);
                 if ($result->num_rows > 0) {
                     while ($row = $result->fetch_assoc()) {
                         echo "<tr data-id='" . htmlspecialchars($row['id']) . "'>
-                                <td>" . htmlspecialchars($row['id']) . "</td>
-                                <td>
-                                    <span class='display'>" . htmlspecialchars($row['first_name']) . "</span>
-                                    <input type='text' value='" . htmlspecialchars($row['first_name']) . "' class='form-control editable hidden' />
-                                </td>
-                                <td>
-                                    <span class='display'>" . htmlspecialchars($row['last_name']) . "</span>
-                                    <input type='text' value='" . htmlspecialchars($row['last_name']) . "' class='form-control editable hidden' />
-                                </td>
-                                <td>
-                                    <span class='display'>" . htmlspecialchars($row['employee_email']) . "</span>
-                                    <input type='text' value='" . htmlspecialchars($row['employee_email']) . "' class='form-control editable hidden' />
-                                </td>
-                                <td>
-                                    <span class='display'>" . htmlspecialchars($row['admin_access']) . "</span>
-                                    <select class='form-select editable hidden'>
-                                        <option value='yes' " . ($row['admin_access'] == 'yes' ? 'selected' : '') . ">Yes</option>
-                                        <option value='no' " . ($row['admin_access'] == 'no' ? 'selected' : '') . ">No</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <span class='display'>" . htmlspecialchars($row['test_list']) . "</span>
-                                    <input type='text' value='" . htmlspecialchars($row['test_list']) . "' class='form-control editable hidden' />
-                                </td>
-                                <td>" . htmlspecialchars($row['created_at']) . "</td>
-                                <td>
-                                    <button class='btn btn-primary edit-btn'>Edit</button>
-                                    <button class='btn btn-success save-btn hidden' disabled>Save</button>
-                                </td>
-                              </tr>";
+                            <td>" . htmlspecialchars($row['id']) . "</td>
+                            <td>
+                                <span class='display'>" . htmlspecialchars($row['first_name']) . "</span>
+                                <input type='text' value='" . htmlspecialchars($row['first_name']) . "' class='form-control editable hidden' />
+                            </td>
+                            <td>
+                                <span class='display'>" . htmlspecialchars($row['last_name']) . "</span>
+                                <input type='text' value='" . htmlspecialchars($row['last_name']) . "' class='form-control editable hidden' />
+                            </td>
+                            <td>
+                                <span class='display'>" . htmlspecialchars($row['employee_email']) . "</span>
+                                <input type='text' value='" . htmlspecialchars($row['employee_email']) . "' class='form-control editable hidden' />
+                            </td>
+                            <td>
+                                <span class='display'>" . htmlspecialchars($row['admin_access']) . "</span>
+                                <select class='form-select editable hidden'>
+                                    <option value='yes' " . ($row['admin_access'] == 'yes' ? 'selected' : '') . ">Yes</option>
+                                    <option value='no' " . ($row['admin_access'] == 'no' ? 'selected' : '') . ">No</option>
+                                </select>
+                            </td>
+                            <td>
+                                <span class='display'>" . htmlspecialchars($row['test_list']) . "</span>
+                                <input type='text' value='" . htmlspecialchars($row['test_list']) . "' class='form-control editable hidden' />
+                            </td>
+                            <td>" . htmlspecialchars($row['created_at']) . "</td>
+                            <td>
+                                <button class='btn btn-primary edit-btn'>Edit</button>
+                                <button class='btn btn-success save-btn hidden' disabled>Save</button>
+                            </td>
+                          </tr>";
                     }
                 } else {
                     echo "<tr><td colspan='8' class='text-center'>No users found.</td></tr>";
@@ -138,7 +174,7 @@ $result = $conn->query($query);
                 };
 
                 // Send the updated data to the server
-                fetch('update_user.php', {
+                fetch('updateuser.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

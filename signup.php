@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 if ($employee_email === 'master@admin.self') {
                     header('Location: manageuser.php');
                 } else {
-                    header('Location: hello.php'); // Redirect to a success page
+                    header('Location: admin.php'); // Redirect to a success page
                 }
                 exit();
             } else {

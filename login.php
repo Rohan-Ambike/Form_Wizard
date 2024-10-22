@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($employee_email === 'master@admin.self') {
                 header("Location: manageuser.php");
             } else {
-                header("Location: hello.php");
+                header("Location: admin.php");
             }
             exit();
         } else {
