@@ -12,8 +12,10 @@ if ($conn->connect_error) {
     die("<script>alert('Connection failed: " . $conn->connect_error . "');</script>");
 }
 
-// Check if the database exists
 $db_selected = $conn->query("SHOW DATABASES LIKE '$dbname'");
+if ($db_selected === false) {
+    die("<script>alert('Error checking database existence: " . $conn->error . "');</script>");
+}
 
 if ($db_selected->num_rows == 0) {
     // If the database doesn't exist, execute the SQL file to create it

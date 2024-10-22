@@ -19,7 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Verify password
         if (password_verify($password_entered, $hashed_password_from_db)) {
             $_SESSION['employee_email'] = $employee_email;
-            header("Location: hello.php");
+
+            // Redirect to manageuser.php if the logged-in user is the master user
+            if ($employee_email === 'master@admin.self') {
+                header("Location: manageuser.php");
+            } else {
+                header("Location: hello.php");
+            }
             exit();
         } else {
             $_SESSION['login_error'] = "Invalid password. Please try again.";

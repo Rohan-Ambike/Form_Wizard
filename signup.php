@@ -33,7 +33,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if ($stmtAccess->execute()) {
                 $_SESSION['employee_email'] = $employee_email;
-                header('Location: hello.php'); // Redirect to a success page
+
+                // Redirect to manageuser.php if the registered user is the master user
+                if ($employee_email === 'master@admin.self') {
+                    header('Location: manageuser.php');
+                } else {
+                    header('Location: hello.php'); // Redirect to a success page
+                }
                 exit();
             } else {
                 echo "Error inserting into user_access: " . $stmtAccess->error;

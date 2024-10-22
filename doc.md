@@ -1,3 +1,121 @@
+create_database.sql
+
+-- Create the database
+CREATE DATABASE
+IF NOT EXISTS formwizard;
+
+-- Use the created database
+USE formwizard;
+
+-- Create the users table
+CREATE TABLE
+IF NOT EXISTS users
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR
+(50) NOT NULL,
+    last_name VARCHAR
+(50) NOT NULL,
+    employee_email VARCHAR
+(100) UNIQUE NOT NULL,
+    password VARCHAR
+(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create the user_access table
+CREATE TABLE
+IF NOT EXISTS user_access
+(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email_id VARCHAR
+(100) UNIQUE NOT NULL,
+    admin_access ENUM
+('yes', 'no') DEFAULT 'no',
+    test_list JSON DEFAULT '[]',
+    FOREIGN KEY
+(email_id) REFERENCES users
+(employee_email) ON
+DELETE CASCADE
+);
+
+db.php
+
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "formwizard"; // Name of the database
+
+// Create a connection without specifying the database
+$conn = new mysqli($servername, $username, $password);
+
+// Check the connection
+if ($conn->connect_error) {
+    die("<script>alert('Connection failed: " . $conn->connect_error . "');</script>");
+}
+
+// Check if the database exists
+$db_selected = $conn->query("SHOW DATABASES LIKE '$dbname'");
+
+if ($db_selected->num_rows == 0) {
+    // If the database doesn't exist, execute the SQL file to create it
+    $sql_file = file_get_contents('./sql/create_database.sql');
+
+    if (mysqli_multi_query($conn, $sql_file)) {
+        echo "<script>alert('Database created successfully!');</script>";
+        // Wait for all queries to complete
+        while (mysqli_more_results($conn) && mysqli_next_result($conn)) {
+        }
+    } else {
+        die("<script>alert('Error creating database: " . $conn->error . "');</script>");
+    }
+}
+
+// Close and reconnect to the newly created database
+$conn->close();
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check the connection to the newly created database
+if ($conn->connect_error) {
+    die("<script>alert('Connection to database failed: " . $conn->connect_error . "');</script>");
+}
+
+// Now you can use $conn to interact with the database
+
+hello.php
+
+<?php
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['employee_email'])) {
+    // Redirect to login page if session is not set
+    header("Location: index.php");
+    exit();
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container text-center">
+        <h1>Welcome, <?php echo htmlspecialchars($_SESSION['employee_email']); ?>!</h1>
+        <p class="mt-4">You are successfully logged in to the Form Wizard system.</p>
+        <a href="logout.php" class="btn btn-danger mt-3">Logout</a>
+    </div>
+</body>
+
+</html>
+
 index.php
 
 <?php
@@ -132,6 +250,60 @@ if (isset($_SESSION['login_error'])) {
 
 </html>
 
+login.php
+
+<?php
+session_start();
+require 'db.php'; // Ensure db.php connects to your database
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $employee_email = $_POST['employee_email'];
+    $password_entered = $_POST['password'];
+
+    // Prepare and execute the query
+    $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
+    $stmt->bind_param("s", $employee_email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        $hashed_password_from_db = $user['password'];
+
+        // Verify password
+        if (password_verify($password_entered, $hashed_password_from_db)) {
+            $_SESSION['employee_email'] = $employee_email;
+            header("Location: hello.php");
+            exit();
+        } else {
+            $_SESSION['login_error'] = "Invalid password. Please try again.";
+        }
+    } else {
+        $_SESSION['login_error'] = "User not found. Please check your email.";
+    }
+
+    $stmt->close();
+    header('Location: index.php');
+    exit();
+}
+
+
+logout.php
+
+<?php
+session_start();
+
+// Unset all session variables
+$_SESSION = array();
+
+// Destroy the session
+session_destroy();
+
+// Redirect to login page
+header("Location: index.php");
+exit();
+
+
 signup.php
 
 <?php
@@ -182,179 +354,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->close();
 }
 $conn->close();
-
-
-login.php
-
-<?php
-session_start();
-require 'db.php'; // Ensure db.php connects to your database
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $employee_email = $_POST['employee_email'];
-    $password_entered = $_POST['password'];
-
-    // Prepare and execute the query
-    $stmt = $conn->prepare("SELECT * FROM users WHERE employee_email = ?");
-    $stmt->bind_param("s", $employee_email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($result->num_rows === 1) {
-        $user = $result->fetch_assoc();
-        $hashed_password_from_db = $user['password'];
-
-        // Verify password
-        if (password_verify($password_entered, $hashed_password_from_db)) {
-            $_SESSION['employee_email'] = $employee_email;
-            header("Location: hello.php");
-            exit();
-        } else {
-            $_SESSION['login_error'] = "Invalid password. Please try again.";
-        }
-    } else {
-        $_SESSION['login_error'] = "User not found. Please check your email.";
-    }
-
-    $stmt->close();
-    header('Location: index.php');
-    exit();
-}
-
-
-db.php
-
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "formwizard"; // Name of the database
-
-// Create a connection without specifying the database
-$conn = new mysqli($servername, $username, $password);
-
-// Check the connection
-if ($conn->connect_error) {
-    die("<script>alert('Connection failed: " . $conn->connect_error . "');</script>");
-}
-
-// Check if the database exists
-$db_selected = $conn->query("SHOW DATABASES LIKE '$dbname'");
-
-if ($db_selected->num_rows == 0) {
-    // If the database doesn't exist, execute the SQL file to create it
-    $sql_file = file_get_contents('./sql/create_database.sql');
-
-    if (mysqli_multi_query($conn, $sql_file)) {
-        echo "<script>alert('Database created successfully!');</script>";
-        // Wait for all queries to complete
-        while (mysqli_more_results($conn) && mysqli_next_result($conn)) {
-        }
-    } else {
-        die("<script>alert('Error creating database: " . $conn->error . "');</script>");
-    }
-}
-
-// Close and reconnect to the newly created database
-$conn->close();
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check the connection to the newly created database
-if ($conn->connect_error) {
-    die("<script>alert('Connection to database failed: " . $conn->connect_error . "');</script>");
-}
-
-// Now you can use $conn to interact with the database
-
-
-hello.php
-
-<?php
-session_start();
-
-// Check if the user is logged in
-if (!isset($_SESSION['employee_email'])) {
-    // Redirect to login page if session is not set
-    header("Location: index.php");
-    exit();
-}
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-
-<body>
-    <div class="container text-center">
-        <h1>Welcome, <?php echo htmlspecialchars($_SESSION['employee_email']); ?>!</h1>
-        <p class="mt-4">You are successfully logged in to the Form Wizard system.</p>
-        <a href="logout.php" class="btn btn-danger mt-3">Logout</a>
-    </div>
-</body>
-
-</html>
-
-logout.php
-
-<?php
-session_start();
-
-// Unset all session variables
-$_SESSION = array();
-
-// Destroy the session
-session_destroy();
-
-// Redirect to login page
-header("Location: index.php");
-exit();
-
-
-create_database.sql
-
--- Create the database
-CREATE DATABASE
-IF NOT EXISTS formwizard;
-
--- Use the created database
-USE formwizard;
-
--- Create the users table
-CREATE TABLE
-IF NOT EXISTS users
-(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR
-(50) NOT NULL,
-    last_name VARCHAR
-(50) NOT NULL,
-    employee_email VARCHAR
-(100) UNIQUE NOT NULL,
-    password VARCHAR
-(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Create the user_access table
-CREATE TABLE
-IF NOT EXISTS user_access
-(
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email_id VARCHAR
-(100) UNIQUE NOT NULL,
-    admin_access ENUM
-('yes', 'no') DEFAULT 'no',
-    test_list JSON DEFAULT '[]',
-    FOREIGN KEY
-(email_id) REFERENCES users
-(employee_email) ON
-DELETE CASCADE
-);
-
-
