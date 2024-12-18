@@ -10,10 +10,10 @@ Tasks and Timeline:
     Registration system in register.php. (done)
     Login system in index.php with role-based redirection. (done)
 
-3.Admin Dashboard
+3.Admin Dashboard (done)
 
-    Create Test (create_test.php).
-    Assign Test to Users (admin_dashboard.php).
+    Create Test (create_test.php).  (done)
+    Assign Test to Users (admin_dashboard.php).  (done)
     View Test Results (view_results.php).
 
 4.User Dashboard
