@@ -5,10 +5,10 @@ Tasks and Timeline:
     Create db.php for database connection. (done)
     Create users, tests, and test_results tables programmatically. (done)
 
-2.Authentication System
+2.Authentication System (done)
 
-    Registration system in register.php.
-    Login system in index.php with role-based redirection.
+    Registration system in register.php. (done)
+    Login system in index.php with role-based redirection. (done)
 
 3.Admin Dashboard
 
